@@ -19,7 +19,8 @@ Open Redirect Scanner adalah tool sederhana berbasis Python yang digunakan untuk
    git clone https://github.com/davinzlopez/OpenRedirect.git
    cd open-redirect-scanner
 2.**Install dependencies**
-  pip install -r requirements.txt
+  ```
+pip install -r requirements.txt
 
 🛠️ Cara Penggunaan
 Mode 1: Uji satu URL
