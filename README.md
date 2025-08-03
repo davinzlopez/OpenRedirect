@@ -14,7 +14,7 @@ Open Redirect Scanner adalah tool sederhana berbasis Python yang digunakan untuk
 
 ## 🛠️ Cara Penggunaan
 Mode 1: Uji satu URL
-python open_redirect_scanner.py
+python open_redirect.py
 Pilih opsi [1], lalu masukkan URL target, misalnya:
 https://example.com/redirect
 
