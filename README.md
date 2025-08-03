@@ -12,17 +12,7 @@ Open Redirect Scanner adalah tool sederhana berbasis Python yang digunakan untuk
 - Tidak mengikuti redirect (menggunakan `allow_redirects=False`)
 - Mendukung payload yang telah di-encode
 
-## 🚀 Instalasi
-
-1. **Clone repositori ini**
-   ```
-   git clone https://github.com/davinzlopez/OpenRedirect.git
-   cd open-redirect-scanner
-2.**Install dependencies**
-  ```
-pip install -r requirements.txt
-
-🛠️ Cara Penggunaan
+## 🛠️ Cara Penggunaan
 Mode 1: Uji satu URL
 python open_redirect_scanner.py
 Pilih opsi [1], lalu masukkan URL target, misalnya:
@@ -38,3 +28,13 @@ urls.txt
 
 🧪 Contoh Output
 [✅] https://example.com/redirect?url=https%3A%2F%2Fbing.com -> ://bing.com (Status: 302)
+
+## 🚀 Instalasi
+
+1. **Clone repositori ini**
+   ```
+   git clone https://github.com/davinzlopez/OpenRedirect.git
+   cd OpenRedirect
+2.**Install dependencies**
+  ```
+pip install -r requirements.txt
