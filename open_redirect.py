@@ -41,35 +41,55 @@ redirect_params = [
     "next_url"
 ]
 
+# Fungsi untuk validasi URL
+def is_valid_url(url):
+    try:
+        parsed = urllib.parse.urlparse(url)
+        return all([parsed.scheme in ("http", "https"), parsed.netloc])
+    except:
+        return False
+
 # Fungsi untuk menguji Open Redirect
 def test_open_redirect(base_url):
+    if not is_valid_url(base_url):
+        print(f"[⚠️] URL tidak valid: {base_url}")
+        return
+
+    vulnerable = False
+
     for param in redirect_params:
         for payload in bypass_payloads:
             encoded_payload = urllib.parse.quote(payload, safe='')  # Encode payload
             test_url = f"{base_url}?{param}={encoded_payload}"
             
             try:
-                response = requests.get(test_url, allow_redirects=False)  # Jangan follow redirect
-                
-                # Cek jika status kode termasuk kategori redirect
+                response = requests.get(test_url, allow_redirects=False)
                 if response.status_code in [301, 302, 303, 307, 308]:
-                    location_header = response.headers.get("Location", "")
+                    location = response.headers.get("Location", "")
+                    parsed_location = urllib.parse.urlparse(location)
 
-                    # Validasi jika header `Location` mengarah ke bing.com (tanda Open Redirect)
-                    if "bing.com" in location_header:
-                        print(f"[✅] {test_url} -> {location_header} [Status: {response.status_code}]")
-                        return  # Langsung keluar jika satu payload berhasil (untuk efisiensi)
-            except requests.RequestException:
-                pass  # Abaikan error dan lanjutkan ke URL berikutnya
+                    # Cek apakah redirect benar-benar ke bing.com
+                    if parsed_location.netloc.lower() == "bing.com" or parsed_location.netloc.lower().endswith(".bing.com"):
+                        print(f"[✅] {test_url} -> {location} [Status: {response.status_code}]")
+                        vulnerable = True
+                        return  # Stop di URL pertama yang rentan
+            except requests.RequestException as e:
+                print(f"[⚠️] Gagal mengakses: {test_url} ({e})")
+
+    if not vulnerable:
+        print(f"[❌] Tidak ditemukan Open Redirect pada: {base_url}")
 
 # Fungsi untuk membaca banyak URL dari file .txt
 def test_from_file(file_path):
-    with open(file_path, "r") as file:
-        urls = file.read().splitlines()
-        for url in urls:
-            test_open_redirect(url)
+    try:
+        with open(file_path, "r") as file:
+            urls = file.read().splitlines()
+            for url in urls:
+                test_open_redirect(url)
+    except FileNotFoundError:
+        print("[⚠️] File tidak ditemukan!")
 
-# Menu untuk memilih mode input
+# Menu utama
 def main():
     print("🔍 Open Redirect Scanner 🔍")
     print("[1] Uji satu URL")
